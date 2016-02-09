@@ -6,14 +6,14 @@ var SerialPort = serialport.SerialPort;
 
 var serialPortName = '/dev/ttyACM0';//'/sys/class/tty/ttyACM0';
 var serialPort = new SerialPort(serialPortName, {
-  baudrate: 9600,
-  parser: serialport.parsers.readline("\n")
+    baudrate: 9600,
+    parser: serialport.parsers.readline("\n")
 });
 serialPort.on("open", function () {
-  console.log('open');
-  serialPort.on('data', function(data) {
-    console.log(data);
-  });
+    console.log('open');
+    serialPort.on('data', function(data) {
+	console.log(data);
+    });
 });
 
 app.get('/', function(req, res){
