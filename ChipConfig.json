@@ -1,0 +1,66 @@
+[
+  {
+    "stimPadId": 5,
+    "recPadId": 6
+  },
+  {
+    "stimPadId": 4,
+    "recPadId": 7
+  },
+  {
+    "stimPadId": 3,
+    "recPadId": 8
+  },
+  {
+    "stimPadId": 2,
+    "recPadId": 9
+  },
+  {
+    "stimPadId": 0,
+    "recPadId": 1
+  },
+  {
+    "stimPadId": 14,
+    "recPadId": 15
+  },
+  {
+    "stimPadId": 13,
+    "recPadId": 16
+  },
+  {
+    "stimPadId": 12,
+    "recPadId": 17
+  },
+  {
+    "stimPadId": 11,
+    "recPadId": 18
+  },
+  {
+    "stimPadId": 10,
+    "recPadId": 19
+  },
+  {
+    "stimPadId": 23,
+    "recPadId": 24
+  },
+  {
+    "stimPadId": 22,
+    "recPadId": 25
+  },
+  {
+    "stimPadId": 21,
+    "recPadId": 26
+  },
+  {
+    "stimPadId": 20,
+    "recPadId": 27
+  },
+  {
+    "stimPadId": 23,
+    "recPadId": 24
+  },
+  {
+    "stimPadId": 28,
+    "recPadId": 29
+  }
+]
