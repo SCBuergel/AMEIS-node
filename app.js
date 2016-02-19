@@ -23,9 +23,11 @@ function setupSerialPort(serialPortName) {
 	});
     });
 
-    //this.setTimeout(function(){send('setclockspeed 1\r\n');}, 3000);
-    this.setTimeout(function(){send('setbitsperchunk 9\r\n');}, 4000);
-    this.setTimeout(function(){send('setpins 5 4 7 2 8 9 10 11 12\r\n');}, 9000);    
+    this.setTimeout(function(){send('setclockspeed 1\r\n');}, 3000);
+    this.setTimeout(function(){send('setbitsperchunk 9\r\n');}, 6000);
+    this.setTimeout(function(){send('setpins 5 4 7 2 8 9 10 11 12\r\n');}, 9000); // (for new PCB)
+    //    this.setTimeout(function(){send('setpins 4 5 6 3 8 9 10 11 12\r\n');}, 9000); // (for old PCB (not really working))
+    this.setTimeout(function(){send('setreset 1\r\n');}, 12000);
 }
 
 function ChamberToPad(stimPadId, recPadId) {
@@ -59,7 +61,7 @@ function getActiveSwitchIndices(activeChamber) {
 	if (padToSwitch[switchId].padId == pads.stimPadId && padToSwitch[switchId].padType == 'stim')
 	    switchesToActivate.push(switchId);
 	if (padToSwitch[switchId].padId == pads.recPadId && padToSwitch[switchId].padType == 'rec')
-	    switchesToActivate.push(switchId);	
+	    switchesToActivate.push(switchId);
     }
     return switchesToActivate;
 }
@@ -73,8 +75,8 @@ function BitField(clock, sync, din) {
 function getBitField(activeChamber) {
     // gets bitfield (clock sync din) array for currently active chamber
 
-    var headerLength = 4;
-    var footerLength = 4;
+    var headerLength = 2;
+    var footerLength = 2;
     var bufLength = headerLength + footerLength + padToSwitch.length * 2; // * 2 in since for each value clock is high and low
     //(encoding a chamber is wasting a lot of bits, TODO: this is should be off-loaded from sending the switch sequence)
     var buf = [];
@@ -82,8 +84,8 @@ function getBitField(activeChamber) {
     // set header (SYNC low)
     buf.push(new BitField(1, 1, 0));
     buf.push(new BitField(0, 1, 0));
-    buf.push(new BitField(1, 0, 0));
-    buf.push(new BitField(0, 0, 0));
+    //buf.push(new BitField(1, 0, 0));
+    //buf.push(new BitField(0, 0, 0));
 
     console.log('Active chamber: ' + activeChamber);
     var activeSwitches = getActiveSwitchIndices(activeChamber);
@@ -107,11 +109,12 @@ function getBitField(activeChamber) {
     }
     
     // set footer (SYNC high)
-    buf.push(new BitField(1, 0, 0));
-    buf.push(new BitField(0, 0, 0));
+//    buf.push(new BitField(1, 0, 0));
+//    buf.push(new BitField(0, 0, 0));
     buf.push(new BitField(1, 1, 0));
     buf.push(new BitField(0, 1, 0));
 
+    console.log('buffer length (in creating function): ' + buf.length + '.');
     return buf;
 }
 
@@ -141,14 +144,10 @@ function tilt(buffer, timeout) {
 
 function send(message) {
     serialPort.write(message);
-//    serialPort.write('test\r\n');
     console.log('sending: ' + message);
 }
 
 app.get('/switch', function(req, res) {
-
-
-
     var activeChamber = req.query.activeChamber;
     var bitField = getBitField(activeChamber);
     var buf = bitfieldToBuffer(bitField, activeChamber);
@@ -156,7 +155,11 @@ app.get('/switch', function(req, res) {
     setTimeout(function(){
 	send(buf);
     }, 2000);
-    
+    setTimeout(function(){
+	console.log('active chamber: ' + activeChamber);
+	console.log('bit field size: ' + bitField.length);
+	console.log('buf length: ' + buf.length);
+    }, 4000);
     res.send('sent switch sequence');
 });
 
@@ -171,5 +174,5 @@ app.listen(WebServerPort, function() {
     setupSerialPort('/dev/ttyACM0');
     setTimeout(function(){
 	send('test\r\n');
-    }, 12000);
+    }, 8000);
 });
