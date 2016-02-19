@@ -134,12 +134,27 @@ function bitfieldToBuffer(custBuf, activeChamber) {
 	    (activeChamber + 1) << markIndex;
 	buf[c * 2] = tmpBuf;
 	buf[c * 2 + 1] = tmpBuf >> 8;
-	console.log(buf[c * 2].toString(2) + ' ' + buf[c * 2 + 1].toString(2));
+	// console.log(buf[c * 2].toString(2) + ' ' + buf[c * 2 + 1].toString(2));
     }
     return buf
 }
 
-function tilt(buffer, timeout) {
+function tilt() {
+    var tiltIndex = 3;
+    var bufHigh = new Buffer(1);
+    bufHigh[0] = 1 << tiltIndex;
+    var bufLow = new Buffer(1);
+    bufLow[0] = 0;
+    send('sendbinarydata 1 1\r\n');
+    setTimeout(function(){
+	send(bufHigh);
+	setTimeout(function(){
+	    send('sendbinarydata 1 1\r\n');
+	    setTimeout(function(){
+		send(bufLow);
+	    }, 1000);
+	}, 1000);
+    }, 1000);
 }
 
 function send(message) {
@@ -147,26 +162,57 @@ function send(message) {
     console.log('sending: ' + message);
 }
 
+app.get('/tilt', function(req, res) {
+    tilt();
+    res.send('initiated tilting');
+});
+
 app.get('/switch', function(req, res) {
     var activeChamber = req.query.activeChamber;
+    switchToChamber(activeChamber);
+    res.send('sent switch sequence');
+});
+
+function switchToChamber(activeChamber) {
     var bitField = getBitField(activeChamber);
     var buf = bitfieldToBuffer(bitField, activeChamber);
     send('sendbinarydata 2 ' + buf.length/2 + '\r\n');//buf.length);
     setTimeout(function(){
 	send(buf);
-    }, 2000);
+    }, 3000);
     setTimeout(function(){
-	console.log('active chamber: ' + activeChamber);
-	console.log('bit field size: ' + bitField.length);
-	console.log('buf length: ' + buf.length);
-    }, 4000);
-    res.send('sent switch sequence');
-});
+	//console.log('active chamber: ' + activeChamber);
+	//console.log('bit field size: ' + bitField.length);
+	//console.log('buf length: ' + buf.length);
+	tilt();
+    }, 6000);
+}
 
 app.get('/test', function(req, res) {
     send('test\r\n');
     res.send('test\r\n');
 });
+
+curChamber = 0;
+numChambers = 14;
+holdTimeS = 10;
+switchChamberHandler = 0;
+
+app.get('/startExperiment', function(req, res) {
+    holdTimeS = req.query.holdTime;
+    curChamber = 0;
+    res.send('started experiment');
+    if (switchChamberHandler)
+	this.clearInterval(switchChamberHandler);
+    switchChamberHandler = this.setInterval(setNextChamber, holdTimeS * 1000);
+});
+
+function setNextChamber() {
+    if (++curChamber >= numChambers) {
+	curChamber = 0;
+    }
+    switchToChamber(curChamber);
+}
 
 var WebServerPort = 8080;
 app.listen(WebServerPort, function() {
