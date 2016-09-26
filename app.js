@@ -4,21 +4,21 @@ var chamberToPad = require('./ChipConfig.json');
 var padToSwitch = require('./PcbConfig.json');
 
 var app = express();
-var SerialPort = serialport.SerialPort; 
-var serialPort = 0;
+//var SerialPort = serialport.SerialPort; 
+var port = 0;
 
 function setupSerialPort(serialPortName) {
     // setting up the serial port for communication with the arduino, reads to console
     console.log('setting up serial port...');
-    serialPort = new SerialPort(serialPortName, {
+    port = new serialport(serialPortName, {
 	baudrate: 9600,
 	parser: serialport.parsers.readline("\n")
     });
 
-    serialPort.on("open", function () {
+    port.on("open", function () {
 	console.log('opened serial port ' + serialPortName);
 
-	serialPort.on('data', function(data) {
+	port.on('data', function(data) {
 	    console.log('[serial port] ' + data);
 	});
     });
@@ -158,7 +158,7 @@ function tilt() {
 }
 
 function send(message) {
-    serialPort.write(message);
+    port.write(message);
     console.log('sending: ' + message);
 }
 

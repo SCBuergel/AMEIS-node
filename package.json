@@ -1,0 +1,24 @@
+{
+  "name": "ameis-node",
+  "version": "1.0.0",
+  "description": "core of the ameis service running on a laptop, connecting to an arduino",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.14.0",
+    "serialport": "^4.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SCBuergel/AMEIS-node.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SCBuergel/AMEIS-node/issues"
+  },
+  "homepage": "https://github.com/SCBuergel/AMEIS-node#readme"
+}
