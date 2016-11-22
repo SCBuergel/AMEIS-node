@@ -4,7 +4,6 @@ var chamberToPad = require('./ChipConfig.json');
 var padToSwitch = require('./PcbConfig.json');
 
 var app = express();
-//var SerialPort = serialport.SerialPort; 
 var port = 0;
 
 function setupSerialPort(serialPortName) {
@@ -84,8 +83,6 @@ function getBitField(activeChamber) {
     // set header (SYNC low)
     buf.push(new BitField(1, 1, 0));
     buf.push(new BitField(0, 1, 0));
-    //buf.push(new BitField(1, 0, 0));
-    //buf.push(new BitField(0, 0, 0));
 
     console.log('Active chamber: ' + activeChamber);
     var activeSwitches = getActiveSwitchIndices(activeChamber);
@@ -134,7 +131,6 @@ function bitfieldToBuffer(custBuf, activeChamber) {
 	    (activeChamber + 1) << markIndex;
 	buf[c * 2] = tmpBuf;
 	buf[c * 2 + 1] = tmpBuf >> 8;
-	// console.log(buf[c * 2].toString(2) + ' ' + buf[c * 2 + 1].toString(2));
     }
     return buf
 }
@@ -147,13 +143,13 @@ function tilt() {
     bufLow[0] = 0;
     send('sendbinarydata 1 1\r\n');
     setTimeout(function(){
-	send(bufHigh);
-	setTimeout(function(){
-	    send('sendbinarydata 1 1\r\n');
-	    setTimeout(function(){
-		send(bufLow);
-	    }, 1000);
-	}, 1000);
+		send(bufHigh);
+		setTimeout(function(){
+			send('sendbinarydata 1 1\r\n');
+			setTimeout(function(){
+			send(bufLow);
+			}, 1000);
+		}, 1000);
     }, 1000);
 }
 
@@ -168,9 +164,10 @@ app.get('/tilt', function(req, res) {
 });
 
 app.get('/switch', function(req, res) {
-    var activeChamber = req.query.activeChamber;
-    switchToChamber(activeChamber);
-    res.send('sent switch sequence');
+    var chamber = req.query.chamber;
+	console.log('chamber: ' + chamber);
+    switchToChamber(chamber);
+    res.jsonp({result: 1});
 });
 
 function switchToChamber(activeChamber) {
@@ -180,17 +177,24 @@ function switchToChamber(activeChamber) {
     setTimeout(function(){
 	send(buf);
     }, 3000);
-    setTimeout(function(){
+	// tilt
+    //setTimeout(function(){
 	//console.log('active chamber: ' + activeChamber);
 	//console.log('bit field size: ' + bitField.length);
 	//console.log('buf length: ' + buf.length);
-	tilt();
-    }, 6000);
+	//tilt();
+    //}, 6000);
 }
 
 app.get('/test', function(req, res) {
     send('test\r\n');
     res.send('test\r\n');
+});
+
+app.get('/debug', function(req, res) {
+	var chamber = req.query.chamber;
+	console.log('chamber = ' + chamber);
+	res.jsonp({debug: 123});
 });
 
 curChamber = 0;
@@ -214,11 +218,14 @@ function setNextChamber() {
     switchToChamber(curChamber);
 }
 
+app.get('/getNumRecordingSites', (req, res) => {
+	res.jsonp(chamberToPad);
+});
+
+console.log('num pads: ' + chamberToPad.length);
+
 var WebServerPort = 8080;
 app.listen(WebServerPort, function() {
     console.log('Express webserver running on ' + WebServerPort);;
-    setupSerialPort('/dev/ttyACM0');
-    setTimeout(function(){
-	send('test\r\n');
-    }, 8000);
+    setupSerialPort('COM3');
 });
