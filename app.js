@@ -227,5 +227,5 @@ console.log('num pads: ' + chamberToPad.length);
 var WebServerPort = 8080;
 app.listen(WebServerPort, function() {
     console.log('Express webserver running on ' + WebServerPort);;
-    setupSerialPort('COM3');
+    setupSerialPort('COM16');
 });
