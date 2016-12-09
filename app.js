@@ -1,6 +1,6 @@
 var express = require('express');
 var serialport = require('serialport');
-var chamberToPad = require('./ChipConfig.json');
+var chipConfig = require('./ChipConfigKetki.json');
 var padToSwitch = require('./PcbConfig.json');
 
 var app = express();
@@ -10,23 +10,23 @@ function setupSerialPort(serialPortName) {
     // setting up the serial port for communication with the arduino, reads to console
     console.log('setting up serial port...');
     port = new serialport(serialPortName, {
-	baudrate: 9600,
-	parser: serialport.parsers.readline("\n")
+		baudrate: 9600,
+		parser: serialport.parsers.readline("\n")
     });
 
-    port.on("open", function () {
-	console.log('opened serial port ' + serialPortName);
+    port.on("open", () => {
+		console.log('opened serial port ' + serialPortName);
 
-	port.on('data', function(data) {
-	    console.log('[serial port] ' + data);
-	});
+		port.on('data', (data) => {
+			console.log('[serial port] ' + data);
+		});
     });
 
-    this.setTimeout(function(){send('setclockspeed 1\r\n');}, 3000);
-    this.setTimeout(function(){send('setbitsperchunk 9\r\n');}, 6000);
-    this.setTimeout(function(){send('setpins 5 4 7 2 8 9 10 11 12\r\n');}, 9000); // (for new PCB)
-    //    this.setTimeout(function(){send('setpins 4 5 6 3 8 9 10 11 12\r\n');}, 9000); // (for old PCB (not really working))
-    this.setTimeout(function(){send('setreset 1\r\n');}, 12000);
+    this.setTimeout(() => {send('setclockspeed 1\r\n');}, 3000);
+    this.setTimeout(() => {send('setbitsperchunk 9\r\n');}, 6000);
+    this.setTimeout(() => {send('setpins 5 4 7 2 8 9 10 11 12\r\n');}, 9000); // (for new PCB)
+    //    this.setTimeout(() => {send('setpins 4 5 6 3 8 9 10 11 12\r\n');}, 9000); // (for old PCB (not really working))
+    this.setTimeout(() => {send('setreset 1\r\n');}, 12000);
 }
 
 function ChamberToPad(stimPadId, recPadId) {
@@ -43,7 +43,7 @@ function PadToSwitch(padId, padType) {
     this.padType = padType;
 }
 
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
     send('test\r\n');
 
     res.send('Can I haz AMEIS? <br />' +
@@ -53,7 +53,7 @@ app.get('/', function(req, res) {
 function getActiveSwitchIndices(activeChamber) {
     // gets the switch indices which are to be activated when the indicated chamber is active
     var switchesToActivate = [];
-    var pads = chamberToPad[activeChamber];
+    var pads = chipConfig.chamberToPad[activeChamber];
     console.log('length: ' + padToSwitch.length);
     console.log('pads: ' + JSON.stringify(pads));
     for (switchId = 0; switchId < padToSwitch.length; switchId++) {
@@ -158,12 +158,12 @@ function send(message) {
     console.log('sending: ' + message);
 }
 
-app.get('/tilt', function(req, res) {
+app.get('/tilt', (req, res) => {
     tilt();
-    res.send('initiated tilting');
+    res.jsonp({result: 1});
 });
 
-app.get('/switch', function(req, res) {
+app.get('/switch', (req, res) => {
     var chamber = req.query.chamber;
 	console.log('chamber: ' + chamber);
     switchToChamber(chamber);
@@ -174,27 +174,19 @@ function switchToChamber(activeChamber) {
     var bitField = getBitField(activeChamber);
     var buf = bitfieldToBuffer(bitField, activeChamber);
     send('sendbinarydata 2 ' + buf.length/2 + '\r\n');//buf.length);
-    setTimeout(function(){
-	send(buf);
-    }, 3000);
-	// tilt
+    setTimeout(() => {
+		send(buf);
+	}, 3000);
+
+	// tilt (uncomment this section in order to tilt after every change of recording site)
     //setTimeout(function(){
-	//console.log('active chamber: ' + activeChamber);
-	//console.log('bit field size: ' + bitField.length);
-	//console.log('buf length: ' + buf.length);
-	//tilt();
+	//	tilt();
     //}, 6000);
 }
 
-app.get('/test', function(req, res) {
+app.get('/test', (req, res) => {
     send('test\r\n');
-    res.send('test\r\n');
-});
-
-app.get('/debug', function(req, res) {
-	var chamber = req.query.chamber;
-	console.log('chamber = ' + chamber);
-	res.jsonp({debug: 123});
+    res.jsonp({result: 1});
 });
 
 curChamber = 0;
@@ -202,7 +194,7 @@ numChambers = 14;
 holdTimeS = 10;
 switchChamberHandler = 0;
 
-app.get('/startExperiment', function(req, res) {
+app.get('/startExperiment', (req, res) => {
     holdTimeS = req.query.holdTime;
     curChamber = 0;
     res.send('started experiment');
@@ -219,13 +211,13 @@ function setNextChamber() {
 }
 
 app.get('/getNumRecordingSites', (req, res) => {
-	res.jsonp(chamberToPad);
+	res.jsonp(chipConfig);
 });
 
-console.log('num pads: ' + chamberToPad.length);
+console.log('num pads: ' + chipConfig.chamberToPad.length);
 
 var WebServerPort = 8080;
-app.listen(WebServerPort, function() {
+app.listen(WebServerPort, () => {
     console.log('Express webserver running on ' + WebServerPort);;
-    setupSerialPort('COM16');
+    setupSerialPort('COM4');
 });
