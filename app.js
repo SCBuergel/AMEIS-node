@@ -1,7 +1,7 @@
 var express = require('express');
 var serialport = require('serialport');
-var chipConfig = require('./ChipConfigKetki.json');
-var padToSwitch = require('./PcbConfig.json');
+var chipConfig = require('./ChipConfig.json');
+var padToSwitch = require('./PcbConfig.json'); // maps the switch ID (0-32 (=8 ICs x 4 switches), each ADG1414 has a total of 8 switches but effectively 4 in our case since each can be stim and rec), only change if PCB layout is changed
 
 var app = express();
 var port = 0;
@@ -57,11 +57,11 @@ function getActiveSwitchIndices(activeChamber) {
     console.log('length: ' + padToSwitch.length);
     console.log('pads: ' + JSON.stringify(pads));
     for (switchId = 0; switchId < padToSwitch.length; switchId++) {
-	if (padToSwitch[switchId].padId == pads.stimPadId && padToSwitch[switchId].padType == 'stim')
-	    switchesToActivate.push(switchId);
-	if (padToSwitch[switchId].padId == pads.recPadId && padToSwitch[switchId].padType == 'rec')
-	    switchesToActivate.push(switchId);
-    }
+		if (padToSwitch[switchId].padId == pads.stimPadId && padToSwitch[switchId].padType == 'stim')
+			switchesToActivate.push(switchId);
+		if (padToSwitch[switchId].padId == pads.recPadId && padToSwitch[switchId].padType == 'rec')
+			switchesToActivate.push(switchId);
+	}
     return switchesToActivate;
 }
 
